@@ -1,0 +1,55 @@
+# This file tells GitHub: "every time someone pushes code, run these steps on your servers"
+name: CI
+
+# WHEN to run: on every push to main, and on every pull request
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    # GitHub spins up a fresh Ubuntu virtual machine for us
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: download our repo code into the VM
+      - uses: actions/checkout@v4
+
+      # Step 2: install Go (same as we just did manually!)
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      # Step 3: static analysis — catches common bugs
+      - name: Vet
+        run: go vet ./...
+
+      # Step 4: check formatting — fails if anyone committed unformatted code
+      - name: Check formatting
+        run: |
+          if [ -n "$(gofmt -l .)" ]; then
+            echo "These files are not formatted:"
+            gofmt -l .
+            exit 1
+          fi
+
+      # Step 5: run all tests with race detector and coverage
+      - name: Test
+        run: go test -race -cover ./...
+
+      # Step 6: make sure the binary actually compiles
+      - name: Build
+        run: go build -o app .
+
+  # CD part: only runs if "test" job passed, and only on main branch
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # In a real job this would build a Docker image and push it,
+      # or copy the binary to a server. We just simulate it:
+      - name: Deploy (simulated)
+        run: echo "🚀 Deploying to production server..."
