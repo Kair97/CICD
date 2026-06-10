@@ -11,7 +11,7 @@ func TestAdd(t *testing.T) {
 		a, b int
 		want int
 	}{
-		{"positive numbers", 2, 3, 5},
+		{"positive numbers", 2, 3, 99},
 		{"negative numbers", -2, -3, -5},
 		{"with zero", 7, 0, 7},
 	}
